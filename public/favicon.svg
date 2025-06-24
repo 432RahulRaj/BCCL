@@ -1,0 +1,27 @@
+<svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer circle -->
+  <circle cx="50" cy="50" r="48" fill="none" stroke="#000" stroke-width="2"/>
+  
+  <!-- Coal India text (simplified) -->
+  <text x="50" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" font-weight="bold">कोल इंडिया</text>
+  
+  <!-- Diamond shape with mining tower -->
+  <g transform="translate(50, 50)">
+    <!-- Diamond outline -->
+    <path d="M-15,-5 L0,-20 L15,-5 L0,20 Z" fill="#000" stroke="#000" stroke-width="1"/>
+    
+    <!-- Mining tower structure -->
+    <g fill="#fff">
+      <!-- Tower base -->
+      <rect x="-8" y="5" width="16" height="8"/>
+      <!-- Tower structure -->
+      <polygon points="-6,-15 6,-15 4,-5 -4,-5"/>
+      <!-- Cross beams -->
+      <line x1="-4" y1="-12" x2="4" y2="-8" stroke="#fff" stroke-width="1"/>
+      <line x1="4" y1="-12" x2="-4" y2="-8" stroke="#fff" stroke-width="1"/>
+    </g>
+  </g>
+  
+  <!-- Coal India text at bottom -->
+  <text x="50" y="85" text-anchor="middle" font-family="Arial, sans-serif" font-size="6" font-weight="bold">Coal India</text>
+</svg>
