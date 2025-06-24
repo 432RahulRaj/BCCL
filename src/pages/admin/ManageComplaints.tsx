@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useComplaints, Complaint, ComplaintStatus, ComplaintType } from '../../contexts/ComplaintContext';
 import ComplaintCard from '../../components/ui/ComplaintCard';
 import { Filter, Search, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { supabase } from '../../lib/supabase';
+
+interface Department {
+  id: string;
+  name: string;
+  email: string;
+}
 
 const ManageComplaints: React.FC = () => {
   const { complaints, assignComplaint, fetchComplaints } = useComplaints();
@@ -14,11 +21,41 @@ const ManageComplaints: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [loadingDepartments, setLoadingDepartments] = useState(false);
   const [assignmentData, setAssignmentData] = useState({
     departmentId: '',
     departmentName: '',
     estimatedDays: '3'
   });
+  
+  // Fetch departments on component mount
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+
+  const fetchDepartments = async () => {
+    setLoadingDepartments(true);
+    try {
+      const { data, error } = await supabase
+        .from('departments')
+        .select('id, name, email')
+        .order('name');
+      
+      if (error) {
+        console.error('Error fetching departments:', error);
+        toast.error('Failed to load departments');
+        return;
+      }
+      
+      setDepartments(data || []);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+      toast.error('Failed to load departments');
+    } finally {
+      setLoadingDepartments(false);
+    }
+  };
   
   // Apply filters
   const filteredComplaints = complaints.filter(complaint => {
@@ -58,15 +95,7 @@ const ManageComplaints: React.FC = () => {
     }));
 
     if (name === 'departmentId') {
-      const departmentOptions = [
-        { id: '1', name: 'Water Department' },
-        { id: '2', name: 'Electrical Department' },
-        { id: '3', name: 'Plumbing Department' },
-        { id: '4', name: 'Carpentry Department' },
-        { id: '5', name: 'Civil Department' }
-      ];
-      
-      const selected = departmentOptions.find(dept => dept.id === value);
+      const selected = departments.find(dept => dept.id === value);
       if (selected) {
         setAssignmentData(prev => ({
           ...prev,
@@ -250,14 +279,22 @@ const ManageComplaints: React.FC = () => {
                       value={assignmentData.departmentId}
                       onChange={handleAssignmentChange}
                       required
+                      disabled={loadingDepartments}
                     >
-                      <option value="">Select Department</option>
-                      <option value="1">Water Department</option>
-                      <option value="2">Electrical Department</option>
-                      <option value="3">Plumbing Department</option>
-                      <option value="4">Carpentry Department</option>
-                      <option value="5">Civil Department</option>
+                      <option value="">
+                        {loadingDepartments ? 'Loading departments...' : 'Select Department'}
+                      </option>
+                      {departments.map(department => (
+                        <option key={department.id} value={department.id}>
+                          {department.name}
+                        </option>
+                      ))}
                     </select>
+                    {departments.length === 0 && !loadingDepartments && (
+                      <p className="text-sm text-red-600 mt-1">
+                        No departments available. Please contact your administrator.
+                      </p>
+                    )}
                   </div>
                   
                   <div>
@@ -289,7 +326,8 @@ const ManageComplaints: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleSubmitAssignment}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={loadingDepartments || !assignmentData.departmentId}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Assign
                   </button>
