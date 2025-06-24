@@ -15,7 +15,9 @@ import {
   Users,
   CheckSquare,
   Wifi,
-  WifiOff
+  WifiOff,
+  Wrench,
+  UserPlus
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -52,6 +54,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboardType }) => {
         return [
           { title: 'Dashboard', path: '/department', icon: <Home size={20} /> },
           { title: 'Assigned Tasks', path: '/department/tasks', icon: <CheckSquare size={20} /> },
+          { title: 'Manage Staff', path: '/department/staff', icon: <UserPlus size={20} /> },
+        ];
+      case 'department_staff':
+        return [
+          { title: 'Dashboard', path: '/staff', icon: <Home size={20} /> },
+          { title: 'My Tasks', path: '/staff/tasks', icon: <Wrench size={20} /> },
         ];
       default:
         return [];
@@ -68,6 +76,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboardType }) => {
         return 'Admin Portal';
       case 'department':
         return user?.department || 'Department Portal';
+      case 'department_staff':
+        return `${user?.department} - Staff Portal`;
       default:
         return 'Portal';
     }
@@ -91,13 +101,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboardType }) => {
             <div>
               <h1 className="text-sm font-semibold text-gray-900">BCCL Portal</h1>
               <div className="flex items-center space-x-1">
-                {connectionStatus === 'connected' ? (
+                {connectionStatus === 'online' ? (
                   <Wifi className="h-3 w-3 text-green-500" />
                 ) : (
                   <WifiOff className="h-3 w-3 text-orange-500" />
                 )}
                 <span className="text-xs text-gray-500">
-                  {connectionStatus === 'connected' ? 'Online' : 'Offline'}
+                  {connectionStatus === 'online' ? 'Online' : 'Offline'}
                 </span>
               </div>
             </div>
@@ -137,12 +147,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboardType }) => {
               <div className="ml-3 min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
                 <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                {user?.staffInfo?.specialization && (
+                  <p className="text-xs text-blue-600 truncate">{user.staffInfo.specialization}</p>
+                )}
               </div>
             </div>
             
             <div className="space-y-1">
               <NavLink
-                to={`/${dashboardType}/profile`}
+                to={`/${dashboardType === 'department_staff' ? 'staff' : dashboardType}/profile`}
                 className="flex items-center w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <Settings size={16} className="mr-2" />
@@ -171,13 +184,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboardType }) => {
             <div>
               <h1 className="text-sm font-semibold text-gray-900">BCCL Portal</h1>
               <div className="flex items-center space-x-1">
-                {connectionStatus === 'connected' ? (
+                {connectionStatus === 'online' ? (
                   <Wifi className="h-3 w-3 text-green-500" />
                 ) : (
                   <WifiOff className="h-3 w-3 text-orange-500" />
                 )}
                 <span className="text-xs text-gray-500">
-                  {connectionStatus === 'connected' ? 'Online' : 'Offline'}
+                  {connectionStatus === 'online' ? 'Online' : 'Offline'}
                 </span>
               </div>
             </div>
@@ -240,12 +253,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboardType }) => {
                     <div className="ml-3">
                       <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                       <p className="text-xs text-gray-500">{user?.email}</p>
+                      {user?.staffInfo?.specialization && (
+                        <p className="text-xs text-blue-600">{user.staffInfo.specialization}</p>
+                      )}
                     </div>
                   </div>
                   
                   <div className="space-y-1">
                     <NavLink
-                      to={`/${dashboardType}/profile`}
+                      to={`/${dashboardType === 'department_staff' ? 'staff' : dashboardType}/profile`}
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50"
                     >

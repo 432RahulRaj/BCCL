@@ -23,6 +23,10 @@ import Analytics from './pages/admin/Analytics';
 import DepartmentDashboard from './pages/department/Dashboard';
 import AssignedTasks from './pages/department/AssignedTasks';
 import UpdateProgress from './pages/department/UpdateProgress';
+import ManageStaff from './pages/department/ManageStaff';
+import StaffDashboard from './pages/staff/Dashboard';
+import MyTasks from './pages/staff/MyTasks';
+import UpdateTask from './pages/staff/UpdateTask';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -94,6 +98,19 @@ function App() {
               <Route index element={<DepartmentDashboard />} />
               <Route path="tasks" element={<AssignedTasks />} />
               <Route path="update/:id" element={<UpdateProgress />} />
+              <Route path="staff" element={<ManageStaff />} />
+              <Route path="profile" element={<Profile />} />
+            </Route>
+
+            {/* Department Staff Routes */}
+            <Route path="staff" element={
+              <ProtectedRoute requiredRole="department_staff">
+                <DashboardLayout dashboardType="department_staff" />
+              </ProtectedRoute>
+            }>
+              <Route index element={<StaffDashboard />} />
+              <Route path="tasks" element={<MyTasks />} />
+              <Route path="update/:id" element={<UpdateTask />} />
               <Route path="profile" element={<Profile />} />
             </Route>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Mail, Shield, Wifi, WifiOff } from 'lucide-react';
+import { Building2, Mail, Shield, Wifi, WifiOff, Wrench } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -20,6 +20,7 @@ const Login: React.FC = () => {
         employee: '/employee',
         admin: '/admin',
         department: '/department',
+        department_staff: '/staff',
       };
       
       // If they were trying to access a specific page, go there, otherwise go to their dashboard
@@ -64,8 +65,10 @@ const Login: React.FC = () => {
   const demoAccounts = [
     { email: 'admin@coalindia.in', role: 'Admin', icon: Shield },
     { email: 'employee@coalindia.in', role: 'Employee', icon: Building2 },
-    { email: 'water@coalindia.in', role: 'Water Dept', icon: Building2 },
-    { email: 'electrical@coalindia.in', role: 'Electrical Dept', icon: Building2 },
+    { email: 'water@coalindia.in', role: 'Water Dept Manager', icon: Building2 },
+    { email: 'electrical@coalindia.in', role: 'Electrical Dept Manager', icon: Building2 },
+    { email: 'water.tech1@coalindia.in', role: 'Water Technician', icon: Wrench },
+    { email: 'electrical.tech1@coalindia.in', role: 'Electrical Technician', icon: Wrench },
   ];
 
   // Don't render login form if already authenticated
@@ -209,17 +212,17 @@ const Login: React.FC = () => {
         {/* Demo Accounts */}
         <div className="bg-white py-6 px-6 shadow-lg rounded-xl border border-gray-100">
           <h3 className="text-sm font-medium text-gray-700 mb-4">Demo Accounts</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-2">
             {demoAccounts.map((account) => (
               <button
                 key={account.email}
                 onClick={() => handleDemoAccountClick(account.email)}
-                className="flex items-center space-x-2 p-3 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition duration-200"
+                className="flex items-center space-x-3 p-3 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition duration-200"
               >
-                <account.icon className="h-4 w-4 text-blue-600" />
-                <div>
-                  <div className="text-xs font-medium text-gray-900">{account.role}</div>
-                  <div className="text-xs text-gray-500">{account.email}</div>
+                <account.icon className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium text-gray-900 truncate">{account.role}</div>
+                  <div className="text-xs text-gray-500 truncate">{account.email}</div>
                 </div>
               </button>
             ))}

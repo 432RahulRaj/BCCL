@@ -32,6 +32,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
       employee: '/employee',
       admin: '/admin',
       department: '/department',
+      department_staff: '/staff',
     };
     return <Navigate to={routes[user.role]} replace />;
   }

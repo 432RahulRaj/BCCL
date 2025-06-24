@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase, testConnection } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
-export type UserRole = 'employee' | 'admin' | 'department';
+export type UserRole = 'employee' | 'admin' | 'department' | 'department_staff';
 export type ConnectionStatus = 'local' | 'online' | 'offline';
 
 export interface User {
@@ -16,6 +16,11 @@ export interface User {
     quarter: string;
     area: string;
     contactNumber: string;
+  };
+  staffInfo?: {
+    specialization: string;
+    phoneNumber: string;
+    departmentId: string;
   };
 }
 
@@ -79,6 +84,30 @@ const DEMO_USERS: Record<string, User> = {
     role: 'department',
     department: 'Plumbing Department',
   },
+  'water.tech1@coalindia.in': {
+    id: 'staff-water-1',
+    name: 'Raj Kumar',
+    email: 'water.tech1@coalindia.in',
+    role: 'department_staff',
+    department: 'Water Department',
+    staffInfo: {
+      specialization: 'Water Supply Technician',
+      phoneNumber: '9876543211',
+      departmentId: '1',
+    },
+  },
+  'electrical.tech1@coalindia.in': {
+    id: 'staff-electrical-1',
+    name: 'Amit Singh',
+    email: 'electrical.tech1@coalindia.in',
+    role: 'department_staff',
+    department: 'Electrical Department',
+    staffInfo: {
+      specialization: 'Electrical Technician',
+      phoneNumber: '9876543213',
+      departmentId: '2',
+    },
+  },
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -112,6 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             employee: '/employee',
             admin: '/admin',
             department: '/department',
+            department_staff: '/staff',
           };
           
           // Only navigate if we're on the login page or root
@@ -221,6 +251,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         employee: '/employee',
         admin: '/admin',
         department: '/department',
+        department_staff: '/staff',
       };
 
       navigate(routes[userProfile.role], { replace: true });
