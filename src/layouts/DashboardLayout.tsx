@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth, UserRole } from '../contexts/AuthContext';
 import { 
-  Building2, 
   User, 
   FileText, 
   ClipboardList, 
@@ -95,8 +94,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboardType }) => {
         {/* Header */}
         <div className="flex items-center justify-between h-16 border-b border-gray-200 px-4">
           <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center">
-              <Building2 size={20} className="text-white" />
+            <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center overflow-hidden border border-gray-200">
+              <img 
+                src="/Bharat_Coming_Coal_Limited_logo.jpg" 
+                alt="BCCL Logo" 
+                className="h-8 w-8 object-contain"
+              />
             </div>
             <div>
               <h1 className="text-sm font-semibold text-gray-900">BCCL Portal</h1>
@@ -178,8 +181,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboardType }) => {
         {/* Mobile Header */}
         <div className="flex items-center justify-between h-16 bg-white border-b border-gray-200 md:hidden px-4">
           <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center">
-              <Building2 size={20} className="text-white" />
+            <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center overflow-hidden border border-gray-200">
+              <img 
+                src="/Bharat_Coming_Coal_Limited_logo.jpg" 
+                alt="BCCL Logo" 
+                className="h-6 w-6 object-contain"
+              />
             </div>
             <div>
               <h1 className="text-sm font-semibold text-gray-900">BCCL Portal</h1>

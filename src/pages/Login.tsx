@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Mail, Shield, Wifi, WifiOff, Wrench } from 'lucide-react';
+import { Mail, Shield, Wifi, WifiOff, Wrench } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -64,9 +64,9 @@ const Login: React.FC = () => {
 
   const demoAccounts = [
     { email: 'admin@coalindia.in', role: 'Admin', icon: Shield },
-    { email: 'employee@coalindia.in', role: 'Employee', icon: Building2 },
-    { email: 'water@coalindia.in', role: 'Water Dept Manager', icon: Building2 },
-    { email: 'electrical@coalindia.in', role: 'Electrical Dept Manager', icon: Building2 },
+    { email: 'employee@coalindia.in', role: 'Employee', icon: Shield },
+    { email: 'water@coalindia.in', role: 'Water Dept Manager', icon: Shield },
+    { email: 'electrical@coalindia.in', role: 'Electrical Dept Manager', icon: Shield },
     { email: 'water.tech1@coalindia.in', role: 'Water Technician', icon: Wrench },
     { email: 'electrical.tech1@coalindia.in', role: 'Electrical Technician', icon: Wrench },
   ];
@@ -88,14 +88,21 @@ const Login: React.FC = () => {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-20 w-20 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center shadow-lg">
-            <Building2 size={40} className="text-white" />
+          <div className="mx-auto h-24 w-24 rounded-full bg-white shadow-lg border-2 border-gray-100 flex items-center justify-center p-2">
+            <img 
+              src="/Bharat_Coming_Coal_Limited_logo.jpg" 
+              alt="BCCL Logo" 
+              className="h-20 w-20 object-contain"
+            />
           </div>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             BCCL Quarters Portal
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Complaint Management System
+          </p>
+          <p className="mt-1 text-xs text-gray-500">
+            Bharat Coking Coal Limited
           </p>
           
           {/* Connection Status */}
@@ -235,7 +242,7 @@ const Login: React.FC = () => {
         {/* Footer */}
         <div className="text-center">
           <p className="text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} BCCL. All rights reserved.
+            &copy; {new Date().getFullYear()} Bharat Coking Coal Limited. All rights reserved.
           </p>
         </div>
       </div>
