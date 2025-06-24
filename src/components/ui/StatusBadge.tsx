@@ -38,6 +38,18 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' }) => {
         text: 'text-red-800',
         label: 'Escalated',
         dot: 'bg-red-500'
+      },
+      authority_assigned: {
+        bg: 'bg-orange-100',
+        text: 'text-orange-800',
+        label: 'Authority Assigned',
+        dot: 'bg-orange-500'
+      },
+      authority_resolved: {
+        bg: 'bg-emerald-100',
+        text: 'text-emerald-800',
+        label: 'Authority Resolved',
+        dot: 'bg-emerald-500'
       }
     };
     

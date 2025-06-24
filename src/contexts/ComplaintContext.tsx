@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
 
-export type ComplaintStatus = 'new' | 'assigned' | 'in_progress' | 'completed' | 'escalated';
+export type ComplaintStatus = 'new' | 'assigned' | 'in_progress' | 'completed' | 'escalated' | 'authority_assigned' | 'authority_resolved';
 export type ComplaintType = 'water' | 'electrical' | 'plumbing' | 'carpentry' | 'civil' | 'other';
 
 export interface Complaint {
@@ -18,9 +18,14 @@ export interface Complaint {
   status: ComplaintStatus;
   department_id?: string;
   department_name?: string;
+  assigned_employee_id?: string;
   assigned_at?: string;
   estimated_resolution_date?: string;
   completed_at?: string;
+  escalated_to_authority?: string;
+  escalated_authority_at?: string;
+  authority_resolution_date?: string;
+  authority_comments?: string;
   created_at: string;
   updated_at: string;
   comments?: Comment[];
@@ -51,6 +56,7 @@ interface ComplaintContextType {
   addComplaint: (complaint: Omit<Complaint, 'id' | 'created_at' | 'updated_at' | 'status'>) => Promise<Complaint>;
   updateComplaintStatus: (complaintId: string, status: ComplaintStatus, comments?: string) => Promise<boolean>;
   assignComplaint: (complaintId: string, departmentId: string, departmentName: string, estimatedDate: string) => Promise<boolean>;
+  assignToAuthority: (complaintId: string, authorityName: string, authorityEmail: string, estimatedDate: string, comments?: string) => Promise<boolean>;
   addComment: (complaintId: string, comment: string) => Promise<boolean>;
   escalateComplaint: (complaintId: string, reason: string) => Promise<boolean>;
   fetchComplaints: () => Promise<void>;
@@ -425,6 +431,72 @@ export const ComplaintProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const assignToAuthority = async (complaintId: string, authorityName: string, authorityEmail: string, estimatedDate: string, comments?: string): Promise<boolean> => {
+    try {
+      if (connectionStatus === 'online') {
+        const { error } = await supabase
+          .from('complaints')
+          .update({
+            status: 'authority_assigned',
+            escalated_to_authority: `${authorityName} (${authorityEmail})`,
+            escalated_authority_at: new Date().toISOString(),
+            authority_resolution_date: estimatedDate,
+            authority_comments: comments,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', complaintId);
+
+        if (error) throw error;
+
+        await supabase
+          .from('complaint_status_history')
+          .insert([{
+            complaint_id: complaintId,
+            status: 'authority_assigned',
+            updated_by: user?.name || 'Admin',
+            comments: `Assigned to higher authority: ${authorityName}${comments ? ` - ${comments}` : ''}`,
+          }]);
+
+        await fetchComplaints();
+      } else {
+        // Offline mode
+        const updatedComplaints = complaints.map(complaint => {
+          if (complaint.id === complaintId) {
+            return {
+              ...complaint,
+              status: 'authority_assigned' as ComplaintStatus,
+              escalated_to_authority: `${authorityName} (${authorityEmail})`,
+              escalated_authority_at: new Date().toISOString(),
+              authority_resolution_date: estimatedDate,
+              authority_comments: comments,
+              updated_at: new Date().toISOString(),
+              status_history: [
+                ...(complaint.status_history || []),
+                {
+                  id: `SH${Date.now()}`,
+                  status: 'authority_assigned' as ComplaintStatus,
+                  updated_by: user?.name || 'Admin',
+                  comments: `Assigned to higher authority: ${authorityName}${comments ? ` - ${comments}` : ''}`,
+                  created_at: new Date().toISOString(),
+                },
+              ],
+            };
+          }
+          return complaint;
+        });
+        
+        updateLocalStorage(updatedComplaints);
+      }
+
+      toast.success(`Complaint assigned to ${authorityName}`);
+      return true;
+    } catch (err: any) {
+      console.error('Error assigning to authority:', err);
+      toast.error('Failed to assign to higher authority');
+      return false;
+    }
+  };
+
   const addComment = async (complaintId: string, comment: string): Promise<boolean> => {
     try {
       if (!user) throw new Error('User not authenticated');
@@ -501,6 +573,7 @@ export const ComplaintProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       addComplaint,
       updateComplaintStatus,
       assignComplaint,
+      assignToAuthority,
       addComment,
       escalateComplaint,
       fetchComplaints,

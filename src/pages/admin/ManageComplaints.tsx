@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useComplaints, Complaint, ComplaintStatus, ComplaintType } from '../../contexts/ComplaintContext';
 import ComplaintCard from '../../components/ui/ComplaintCard';
-import { Filter, Search, RefreshCw, ArrowLeft } from 'lucide-react';
+import { Filter, Search, RefreshCw, ArrowLeft, UserCog } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
+import { HigherAuthority } from '../../types/higherAuthority';
 
 interface Department {
   id: string;
@@ -13,7 +14,7 @@ interface Department {
 }
 
 const ManageComplaints: React.FC = () => {
-  const { complaints, assignComplaint, fetchComplaints } = useComplaints();
+  const { complaints, assignComplaint, assignToAuthority, fetchComplaints } = useComplaints();
   const navigate = useNavigate();
   
   const [statusFilter, setStatusFilter] = useState<ComplaintStatus | 'all'>('new');
@@ -21,17 +22,28 @@ const ManageComplaints: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showAuthorityModal, setShowAuthorityModal] = useState(false);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [higherAuthorities, setHigherAuthorities] = useState<HigherAuthority[]>([]);
   const [loadingDepartments, setLoadingDepartments] = useState(false);
+  const [loadingAuthorities, setLoadingAuthorities] = useState(false);
   const [assignmentData, setAssignmentData] = useState({
     departmentId: '',
     departmentName: '',
     estimatedDays: '3'
   });
+  const [authorityData, setAuthorityData] = useState({
+    authorityId: '',
+    authorityName: '',
+    authorityEmail: '',
+    estimatedDays: '7',
+    comments: ''
+  });
   
-  // Fetch departments on component mount
+  // Fetch departments and authorities on component mount
   useEffect(() => {
     fetchDepartments();
+    fetchHigherAuthorities();
   }, []);
 
   const fetchDepartments = async () => {
@@ -56,6 +68,29 @@ const ManageComplaints: React.FC = () => {
       setLoadingDepartments(false);
     }
   };
+
+  const fetchHigherAuthorities = async () => {
+    setLoadingAuthorities(true);
+    try {
+      const { data, error } = await supabase
+        .from('higher_authorities')
+        .select('*')
+        .order('department, name');
+      
+      if (error) {
+        console.error('Error fetching higher authorities:', error);
+        toast.error('Failed to load higher authorities');
+        return;
+      }
+      
+      setHigherAuthorities(data || []);
+    } catch (error) {
+      console.error('Error fetching higher authorities:', error);
+      toast.error('Failed to load higher authorities');
+    } finally {
+      setLoadingAuthorities(false);
+    }
+  };
   
   // Apply filters
   const filteredComplaints = complaints.filter(complaint => {
@@ -73,6 +108,9 @@ const ManageComplaints: React.FC = () => {
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
 
+  // Get escalated complaints for separate section
+  const escalatedComplaints = complaints.filter(c => c.status === 'escalated');
+
   const handleViewComplaint = (complaint: Complaint) => {
     setSelectedComplaint(complaint);
   };
@@ -84,6 +122,18 @@ const ManageComplaints: React.FC = () => {
       departmentId: complaint.department_id || '',
       departmentName: complaint.department_name || '',
       estimatedDays: '3'
+    });
+  };
+
+  const handleAssignToAuthority = (complaint: Complaint) => {
+    setSelectedComplaint(complaint);
+    setShowAuthorityModal(true);
+    setAuthorityData({
+      authorityId: '',
+      authorityName: '',
+      authorityEmail: '',
+      estimatedDays: '7',
+      comments: ''
     });
   };
 
@@ -100,6 +150,25 @@ const ManageComplaints: React.FC = () => {
         setAssignmentData(prev => ({
           ...prev,
           departmentName: selected.name
+        }));
+      }
+    }
+  };
+
+  const handleAuthorityChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setAuthorityData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    if (name === 'authorityId') {
+      const selected = higherAuthorities.find(auth => auth.id === value);
+      if (selected) {
+        setAuthorityData(prev => ({
+          ...prev,
+          authorityName: selected.name,
+          authorityEmail: selected.email
         }));
       }
     }
@@ -131,6 +200,39 @@ const ManageComplaints: React.FC = () => {
     }
   };
 
+  const handleSubmitAuthorityAssignment = async () => {
+    if (!selectedComplaint || !authorityData.authorityId) {
+      toast.error('Please select a higher authority');
+      return;
+    }
+    
+    const days = parseInt(authorityData.estimatedDays, 10) || 7;
+    const estimatedDate = new Date();
+    estimatedDate.setDate(estimatedDate.getDate() + days);
+    
+    try {
+      await assignToAuthority(
+        selectedComplaint.id,
+        authorityData.authorityName,
+        authorityData.authorityEmail,
+        estimatedDate.toISOString(),
+        authorityData.comments
+      );
+      
+      setShowAuthorityModal(false);
+      setAuthorityData({
+        authorityId: '',
+        authorityName: '',
+        authorityEmail: '',
+        estimatedDays: '7',
+        comments: ''
+      });
+      setSelectedComplaint(null);
+    } catch (error) {
+      toast.error('Failed to assign to higher authority');
+    }
+  };
+
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -154,9 +256,40 @@ const ManageComplaints: React.FC = () => {
         </button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Manage Complaints</h1>
-          <p className="text-gray-600">Review and assign complaints to departments</p>
+          <p className="text-gray-600">Review and assign complaints to departments or higher authorities</p>
         </div>
       </div>
+
+      {/* Escalated Complaints Section */}
+      {escalatedComplaints.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-red-900">🚨 Escalated Complaints - Requires Higher Authority</h2>
+            <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">
+              {escalatedComplaints.length} pending
+            </span>
+          </div>
+          <div className="space-y-4">
+            {escalatedComplaints.map(complaint => (
+              <div key={complaint.id} className="bg-white rounded-lg border border-red-200 p-4">
+                <ComplaintCard
+                  complaint={complaint}
+                  onClick={() => handleViewComplaint(complaint)}
+                />
+                <div className="mt-4 flex justify-end">
+                  <button
+                    onClick={() => handleAssignToAuthority(complaint)}
+                    className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    <UserCog className="h-4 w-4 mr-2" />
+                    Assign to Higher Authority
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
@@ -185,6 +318,8 @@ const ManageComplaints: React.FC = () => {
               <option value="in_progress">In Progress</option>
               <option value="completed">Completed</option>
               <option value="escalated">Escalated</option>
+              <option value="authority_assigned">Authority Assigned</option>
+              <option value="authority_resolved">Authority Resolved</option>
             </select>
           </div>
           
@@ -244,7 +379,7 @@ const ManageComplaints: React.FC = () => {
         </div>
       )}
       
-      {/* Assignment Modal */}
+      {/* Department Assignment Modal */}
       {showAssignModal && selectedComplaint && (
         <div className="fixed inset-0 overflow-y-auto z-50">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -330,6 +465,114 @@ const ManageComplaints: React.FC = () => {
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Assign
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Higher Authority Assignment Modal */}
+      {showAuthorityModal && selectedComplaint && (
+        <div className="fixed inset-0 overflow-y-auto z-50">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+              <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={() => setShowAuthorityModal(false)}></div>
+            </div>
+            
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div>
+                <div className="flex items-center mb-4">
+                  <UserCog className="h-6 w-6 text-red-600 mr-2" />
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Assign to Higher Authority
+                  </h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                    <h4 className="font-medium text-red-900 mb-2">Escalated Complaint</h4>
+                    <p className="text-sm text-red-700">ID: {selectedComplaint.id}</p>
+                    <p className="text-sm text-red-700">Type: {selectedComplaint.type}</p>
+                    <p className="text-sm text-red-700">Employee: {selectedComplaint.employee_name}</p>
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="authorityId" className="block text-sm font-medium text-gray-700 mb-2">
+                      Higher Authority
+                    </label>
+                    <select
+                      id="authorityId"
+                      name="authorityId"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      value={authorityData.authorityId}
+                      onChange={handleAuthorityChange}
+                      required
+                      disabled={loadingAuthorities}
+                    >
+                      <option value="">
+                        {loadingAuthorities ? 'Loading authorities...' : 'Select Higher Authority'}
+                      </option>
+                      {higherAuthorities.map(authority => (
+                        <option key={authority.id} value={authority.id}>
+                          {authority.name} - {authority.title} ({authority.department})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="authorityEstimatedDays" className="block text-sm font-medium text-gray-700 mb-2">
+                      Estimated Days for Resolution
+                    </label>
+                    <input
+                      type="number"
+                      id="authorityEstimatedDays"
+                      name="estimatedDays"
+                      min="1"
+                      max="60"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      value={authorityData.estimatedDays}
+                      onChange={handleAuthorityChange}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="authorityComments" className="block text-sm font-medium text-gray-700 mb-2">
+                      Additional Comments
+                    </label>
+                    <textarea
+                      id="authorityComments"
+                      name="comments"
+                      rows={3}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                      placeholder="Add any additional context or urgency information..."
+                      value={authorityData.comments}
+                      onChange={handleAuthorityChange}
+                    />
+                  </div>
+                </div>
+                
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAuthorityModal(false)}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmitAuthorityAssignment}
+                    disabled={loadingAuthorities || !authorityData.authorityId}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <UserCog className="h-4 w-4 mr-2 inline" />
+                    Assign to Authority
                   </button>
                 </div>
               </div>
