@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase } from './supabase';
 import toast from 'react-hot-toast';
 
 interface DatabaseStatus {

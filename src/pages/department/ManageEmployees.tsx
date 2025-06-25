@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { supabase } from '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabase';
 import { Plus, Trash2, Edit2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 

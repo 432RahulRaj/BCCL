@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useComplaints } from '../../contexts/ComplaintContext';
-import { supabase } from '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabase';
 import { Plus, Users, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 
