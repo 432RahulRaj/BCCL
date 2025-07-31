@@ -21,6 +21,10 @@ A comprehensive complaint management system for BCCL (Bharat Coking Coal Limited
 - Role-based access control
 - Row-level security with Supabase
 
+## 🚀 Live Demo
+
+**Deployed Application**: [https://bccl-managment.netlify.app/login](https://bccl-managment.netlify.app/login)
+
 ## 🛠️ Technology Stack
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS
