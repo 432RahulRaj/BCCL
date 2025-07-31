@@ -23,7 +23,7 @@ A comprehensive complaint management system for BCCL (Bharat Coking Coal Limited
 
 ## 🚀 Live Demo
 
-**Deployed Application**: [https://bccl-managment.netlify.app/login](https://bccl-managment.netlify.app/login)
+**Deployed Application**: [https://bccl-managment.netlify.app/login](https://bccl-managment.netlify.app/)
 
 ## 🛠️ Technology Stack
 
