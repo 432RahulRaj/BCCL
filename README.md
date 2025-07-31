@@ -23,7 +23,7 @@ A comprehensive complaint management system for BCCL (Bharat Coking Coal Limited
 
 ## 🚀 Live Demo
 
-**Deployed Application**: [BCCL Quater Managemnet](bccl.vercel.app)
+**Deployed Application**: [bccl.vercel.app](bccl.vercel.app)
 
 ## 🛠️ Technology Stack
 
